@@ -1,12 +1,9 @@
-steps:
-- uses: actions/checkout@v2
-- id: deploy
-  uses: google-github-actions/deploy-cloud-functions@main
+  
+- name: Deploy a Cloud Function
+  id: deploy-function
+  uses: google-github-actions/deploy-cloud-functions@v0.1.0
   with:
     name: graphql-cvm
     runtime: nodejs14
+    project: 'portela.dev'
     credentials: ${{ secrets.gcp_credentials }}
-
-# Example of using the output
-- id: test
-  run: curl "${{ steps.deploy.outputs.url }}"
