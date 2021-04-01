@@ -2,21 +2,21 @@ name: Deploy a Google Cloud Function
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [$default-branch]
   pull_request:
-    branches: [ $default-branch ]
+    branches: [$default-branch]
 
 jobs:
-  deploy: 
+  deploy:
     steps:
-    - uses: actions/checkout@v2
-    - id: deploy
-      uses: google-github-actions/deploy-cloud-functions@main
-      with:
-        name: graphql-cvm
-        runtime: nodejs14
-        credentials: ${{ secrets.gcp_credentials }}
+      - uses: actions/checkout@v2
+      - id: deploy
+        uses: google-github-actions/deploy-cloud-functions@main
+        with:
+          name: graphql-cvm
+          runtime: nodejs14
+          credentials: ${{ secrets.gcp_credentials }}
 
-    # Example of using the output
-    - id: test
-      run: curl "${{ steps.deploy.outputs.url }}"
+      # Example of using the output
+      - id: test
+        run: curl "${{ steps.deploy.outputs.url }}"
