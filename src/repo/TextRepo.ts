@@ -9,8 +9,6 @@ export function makeStream(source: string | ReadStream): Promise<ReadStream> {
   else return Promise.resolve(createReadStream(source));
 }
 
-export const parseLinesPromise = (resolve, reject) => {};
-
 export function parseLines(
   source: string | ReadStream,
   consumer: (line: string, lineNumber: number) => void
