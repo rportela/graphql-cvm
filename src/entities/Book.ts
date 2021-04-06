@@ -1,4 +1,5 @@
-import { Field, ObjectType } from "type-graphql";
+
+import { ObjectType, Field } from "type-graphql";
 
 @ObjectType({ description: "The book model" })
 export class Book {
