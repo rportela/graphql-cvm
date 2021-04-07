@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import readline from "readline";
-import { createReadStream, ReadStream } from "node:fs";
+import { createReadStream, ReadStream } from "fs";
 
 export function makeStream(source: string | ReadStream): Promise<ReadStream> {
   if (source instanceof ReadStream) return Promise.resolve(source);
@@ -12,7 +12,7 @@ export function makeStream(source: string | ReadStream): Promise<ReadStream> {
 export function parseLines(
   source: string | ReadStream,
   consumer: (line: string, lineNumber: number) => void
-): Promise<void> {
+): Promise<number> {
   return new Promise((resolve, reject) => {
     makeStream(source).then((stream) => {
       let lineNumber: number = 0;
@@ -23,21 +23,25 @@ export function parseLines(
           consumer(line, lineNumber);
           lineNumber++;
         })
-        .on("close", resolve);
+        .on("close", () => resolve(lineNumber));
     });
   });
 }
 
+export interface CsvConsumer {
+  (row: string[], lineNumber: number, headers?: string[]): void;
+}
+
 export function parseCsv(
   source: string | ReadStream,
-  consumer: (row: any[], headers?: string[]) => void,
+  consumer: CsvConsumer,
   separator: string = ",",
-  headerRow: boolean = false
-): Promise<void> {
+  headerRow: boolean = true
+): Promise<number> {
   let headers: string[];
   return parseLines(source, (line, lineNumber) => {
     const row = line.split(separator);
     if (headerRow === true && lineNumber === 0) headers = row;
-    else consumer(row, headers);
+    else consumer(row, lineNumber, headers);
   });
 }

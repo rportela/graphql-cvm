@@ -1,8 +1,9 @@
 import { Field, Int, ObjectType } from "type-graphql";
+import { Long } from "../utils";
 
 @ObjectType({ description: "Dados diarios dos fundos de investimento na CVM." })
 export class FundoDiario {
-  @Field((type) => Int, { description: "CNPJ do fundo" })
+  @Field(() => Long, { description: "CNPJ do fundo" })
   cnpj: number;
   @Field({ description: "Data de competência do documento" })
   competencia: Date;
@@ -20,4 +21,6 @@ export class FundoDiario {
   cotistas: number;
   @Field((type) => Int, { description: "Tipo de fundo" })
   tipo: string;
+  @Field({ description: "A data da extração" })
+  extraido_em: Date;
 }
