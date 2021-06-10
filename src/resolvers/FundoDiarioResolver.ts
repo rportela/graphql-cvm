@@ -1,7 +1,7 @@
 import { Arg, Int, Query, Resolver } from "type-graphql";
 import { FundoDiario } from "../entities/FundoDiario";
-import { CvmFundoDiario } from "../services/CvmFundoDiario";
-import { Long } from "../utils";
+import { CvmFundoDiario } from "../repo/CvmFundoDiario";
+import Long from "../utils/Long";
 
 @Resolver()
 export class FundoDiarioResolver {

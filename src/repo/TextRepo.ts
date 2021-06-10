@@ -1,6 +1,6 @@
+import { createReadStream, ReadStream } from "fs";
 import fetch from "node-fetch";
 import readline from "readline";
-import { createReadStream, ReadStream } from "fs";
 
 export function makeStream(source: string | ReadStream): Promise<ReadStream> {
   if (source instanceof ReadStream) return Promise.resolve(source);

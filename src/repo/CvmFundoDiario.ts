@@ -1,7 +1,7 @@
 import "reflect-metadata";
 import { FundoDiario } from "../entities/FundoDiario";
-import { CsvConsumer, parseCsv } from "../repo/TextRepo";
-import { dateYmd, digitsOnly } from "../utils";
+import { CsvConsumer, parseCsv } from "./TextRepo";
+import { dateYmd, digitsOnly } from "../utils/Parsers";
 
 export class CvmFundoDiarioBuilder {
   TP_FUNDO = (source: string, target: FundoDiario) => {

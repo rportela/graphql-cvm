@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from "type-graphql";
-import { Long } from "../utils";
+import Long from "../utils/Long";
 
 @ObjectType({ description: "Dados diarios dos fundos de investimento na CVM." })
 export class FundoDiario {
