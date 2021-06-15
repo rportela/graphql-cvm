@@ -1,49 +1,51 @@
 import { createReadStream, ReadStream } from "fs";
 import fetch from "node-fetch";
+import { Gunzip } from "node:zlib";
 import readline from "readline";
 import { createGunzip } from "zlib";
 
-export function makeStream(
+export async function makeStream(
   source: string | ReadStream,
   gunzip: boolean = false
-): Promise<ReadStream> {
-  if (source instanceof ReadStream) return Promise.resolve(source);
-  else if (source.startsWith("http")) {
-    const rs = fetch(source).then((res) => res.body as ReadStream);
-    return gunzip ? rs.then((rs) => rs.pipe(createGunzip())) : rs;
+): Promise<ReadStream | Gunzip> {
+  let stream: ReadStream;
+
+  if (source instanceof ReadStream) {
+    stream = source;
+  } else if (source.startsWith("http")) {
+    stream = await fetch(source).then((res) => res.body as ReadStream);
   } else {
-    const rs = createReadStream(source);
-    return gunzip
-      ? Promise.resolve(rs.pipe(createGunzip()) as unknown as ReadStream)
-      : Promise.resolve(rs);
+    stream = createReadStream(source);
   }
+  return gunzip ? stream.pipe(createGunzip()) : stream;
 }
 
-export function parseLines(
+export async function parseLines(
   source: string | ReadStream,
   consumer: (line: string, lineNumber: number) => void,
   gunzip: boolean = false
 ): Promise<number> {
-  return new Promise((resolve, reject) => {
-    makeStream(source, gunzip).then((stream) => {
-      let lineNumber: number = 0;
-      stream.on("error", reject);
-      readline
-        .createInterface(stream)
-        .on("line", (line) => {
-          consumer(line, lineNumber);
-          lineNumber++;
-        })
-        .on("close", () => resolve(lineNumber));
-    });
+  let lineNumber = 0;
+  const stream = await makeStream(source, gunzip);
+  stream.setEncoding("latin1");
+
+  const rl = readline.createInterface({
+    input: stream,
   });
+
+  for await (const line of rl) {
+    consumer(line, lineNumber);
+    lineNumber++;
+  }
+
+  return lineNumber;
 }
 
 export interface CsvConsumer {
   (row: string[], lineNumber: number, headers?: string[]): void;
 }
 
-export function parseCsv(
+export async function parseCsv(
   source: string | ReadStream,
   consumer: CsvConsumer,
   separator: string = ",",

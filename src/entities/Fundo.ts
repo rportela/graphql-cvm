@@ -59,32 +59,35 @@ export class Fundo {
   taxa_adm_info: string;
   @Field({ description: "Valor do patrimônio líquido do fundo." })
   pl_valor: number;
-  @Field({ description: "Data do patrimônio líquido do fundo." })
-  pl_data: Date;
-  @Field({ description: "Nome do diretor do fundo." })
-  diretor_nome: string;
-  @Field({ description: "CNPJ do administrador do fundo." })
-  admin_cnpj: number;
-  @Field({ description: "Nome do administrador do fundo." })
-  admin_nome: string;
-  @Field({ description: "Indica se o gestor é pessoa física." })
-  gestor_pf: boolean;
-  @Field({ description: "CPF ou CNPJ do gestor do fundo." })
-  gestor_cnpj: number;
-  @Field({ description: "Nome do gestor do fundo." })
-  gestor_nome: string;
-  @Field({ description: "CNPJ do auditor do fundo." })
-  auditor_cnpj: number;
-  @Field({ description: "Nome do auditor do fundo." })
-  auditor_nome: string;
-  @Field({ description: "CNPJ do custodiante do fundo." })
-  custodiante_cnpj: number;
-  @Field({ description: "Nome do custodiante do fundo." })
-  custodiante_nome: string;
-  @Field({ description: "CNPJ do controlador do fundo." })
-  controlador_cnpj: number;
-  @Field({ description: "Nome do controlador do fundo." })
-  controlador_nome: string;
-  @Field({ description: "Data de extração da informação." })
+  @Field({
+    description: "Data do patrimônio líquido do fundo.",
+    nullable: true,
+  })
+  pl_data?: Date;
+  @Field({ description: "Nome do diretor do fundo.", nullable: true })
+  diretor_nome?: string;
+  @Field({ description: "CNPJ do administrador do fundo.", nullable: true })
+  admin_cnpj?: number;
+  @Field({ description: "Nome do administrador do fundo.", nullable: true })
+  admin_nome?: string;
+  @Field({ description: "Indica se o gestor é pessoa física.", nullable: true })
+  gestor_pf?: boolean;
+  @Field({ description: "CPF ou CNPJ do gestor do fundo.", nullable: true })
+  gestor_cnpj?: number;
+  @Field({ description: "Nome do gestor do fundo.", nullable: true })
+  gestor_nome?: string;
+  @Field({ description: "CNPJ do auditor do fundo.", nullable: true })
+  auditor_cnpj?: number;
+  @Field({ description: "Nome do auditor do fundo.", nullable: true })
+  auditor_nome?: string;
+  @Field({ description: "CNPJ do custodiante do fundo.", nullable: true })
+  custodiante_cnpj?: number;
+  @Field({ description: "Nome do custodiante do fundo.", nullable: true })
+  custodiante_nome?: string;
+  @Field({ description: "CNPJ do controlador do fundo.", nullable: true })
+  controlador_cnpj?: number;
+  @Field({ description: "Nome do controlador do fundo.", nullable: true })
+  controlador_nome?: string;
+  @Field({ description: "Data de extração da informação.", nullable: true })
   extraido_em: Date;
 }

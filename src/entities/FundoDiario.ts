@@ -19,8 +19,8 @@ export class FundoDiario {
   captacao: number;
   @Field({ description: "Número de cotistas" })
   cotistas: number;
-  @Field((type) => Int, { description: "Tipo de fundo" })
-  tipo: string;
+  @Field(() => String, { description: "Tipo de fundo", nullable: true })
+  tipo?: string;
   @Field({ description: "A data da extração" })
   extraido_em: Date;
 }
