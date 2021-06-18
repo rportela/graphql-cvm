@@ -20,9 +20,11 @@ export class CkanLocalCache extends DataFolder {
     api_url: string,
     package_id: string,
     file_format?: string,
-    gzip?: boolean
+    gzip?: boolean,
+    encoding?: BufferEncoding
   ) {
     super(package_id, gzip, LOCAL_PATH);
+    this.encoding = encoding;
     this.ckan_api = new CkanApi(api_url);
     this.file_format = file_format;
   }

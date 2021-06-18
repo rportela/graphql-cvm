@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { FundoCadastroRepoLocal } from "./repo/FundoCadastroRepoLocal";
 import { FundoDiarioRepoLocal } from "./repo/FundoDiarioRepoLocal";
 import { Fundo } from "./types/Fundo";
+import FundoCompleto from "./types/FundoCompleto";
 import { FundoDiario } from "./types/FundoDiario";
 
 async function extract() {
@@ -11,33 +12,40 @@ async function extract() {
   ]);
 }
 
-function fundDiarioReduce(
-  fd: FundoDiario,
-  target: Record<number, Record<string, FundoDiario>>
-): boolean {
-  const rec = target[fd.cnpj];
-  rec[fd.competencia.toISOString()] = fd;
-  return true;
-}
-
 function transformFundoDiario(
   fd: FundoDiario,
-  funds: Record<number, Fundo>
+  funds: Record<number, FundoCompleto>
 ): boolean {
+  const completo = funds[fd.cnpj];
+  if (completo) {
+    completo.diario[fd.competencia.toISOString().substr(0, 10)] = fd;
+  }
   return true;
 }
 
 async function transform() {
   const fundsArray = await new FundoCadastroRepoLocal().todosOsFundos();
-  const funds = fundsArray.reduce((omap, fundo) => {
-    omap[fundo.cnpj] = fundo;
-    return omap;
-  }, {});
+  const funds: Record<number, FundoCompleto> = fundsArray.reduce(
+    (omap, fundo) => {
+      omap[fundo.cnpj] = {
+        cadastro: fundo,
+        diario: {},
+      } as FundoCompleto;
+      return omap;
+    },
+    {}
+  );
   const diarioRepo = new FundoDiarioRepoLocal();
   const diario_entries = diarioRepo.cache.listEntries();
-  diarioRepo.forEachFundoDiarioInFile(diario_entries[0], (fd: FundoDiario) =>
-    transformFundoDiario(fd, funds)
-  );
+  for (const file of diario_entries) {
+    console.log(file);
+    await diarioRepo.forEachFundoDiarioInFile(file, (fd: FundoDiario) =>
+      transformFundoDiario(fd, funds)
+    );
+  }
+
+  const cnpj = 8927452000125;
+  console.log(funds[cnpj]);
 }
 
 async function load() {
