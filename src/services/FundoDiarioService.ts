@@ -1,4 +1,4 @@
-import { FundoDiario } from "../entities/FundoDiario";
+import { FundoDiario } from "../types/FundoDiario";
 import { FundoDiarioRepoLocal } from "../repo/FundoDiarioRepoLocal";
 
 export class FundoDiarioService {

@@ -1,5 +1,5 @@
 import path from "path";
-import { Fundo } from "../entities/Fundo";
+import { Fundo } from "../types/Fundo";
 import { fileExists, jsonGunzip, jsonGzip } from "../utils/FileSystem";
 import { FundRepo } from "./FundRepo";
 

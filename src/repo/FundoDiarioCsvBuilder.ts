@@ -1,4 +1,4 @@
-import { FundoDiario } from "../entities/FundoDiario";
+import { FundoDiario } from "../types/FundoDiario";
 import { dateYmd, digitsOnly } from "../utils/Parsers";
 
 export class FundoDiarioCsvBuilder {

@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import { CkanPackage } from "../entities";
+import { CkanPackage } from "../types";
 
 /**
  *

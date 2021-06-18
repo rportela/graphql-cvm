@@ -1,5 +1,5 @@
 import { Arg, Query, Resolver } from "type-graphql";
-import { Fundo } from "../entities/Fundo";
+import { Fundo } from "../types/Fundo";
 import { FundoCadastroRepoLocal } from "../repo/FundoCadastroRepoLocal";
 
 @Resolver()

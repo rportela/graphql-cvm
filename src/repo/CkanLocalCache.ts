@@ -1,61 +1,42 @@
-import { createWriteStream, existsSync, mkdirSync, stat } from "fs";
-import { get } from "http";
-import { resolve } from "path";
-import { createGzip } from "zlib";
-import { CkanResource } from "../entities";
+import { existsSync } from "fs";
+import { CkanResource } from "../types";
 import { CkanApi } from "../services/CkanApi";
-import { CsvConsumer, parseCsv } from "./TextRepo";
+import { DataFolder } from "./DataFolder";
 
 const LOCAL_PATH = ".data/raw";
 
 /**
- *
+ * This class makes a local cache of ckan resources.
  */
-export interface CkanLocalCacheConfig {
-  package_id: string;
-  api_url: string;
-  file_format: string;
-  gzip?: boolean;
-}
-
-/**
- *
- */
-export class CkanLocalCache {
-  config: CkanLocalCacheConfig;
+export class CkanLocalCache extends DataFolder {
+  ckan_api: CkanApi;
+  file_format?: string;
 
   /**
    *
    * @param config
    */
-  constructor(config: CkanLocalCacheConfig) {
-    if (!config)
-      throw new Error("A configuration is required for CKAN local cache.");
-    this.config = config;
+  constructor(
+    api_url: string,
+    package_id: string,
+    file_format?: string,
+    gzip?: boolean
+  ) {
+    super(package_id, gzip, LOCAL_PATH);
+    this.ckan_api = new CkanApi(api_url);
+    this.file_format = file_format;
   }
 
   /**
    *
    * @returns
    */
-  getResources = (): Promise<CkanResource[]> => {
-    const resources = new CkanApi(this.config.api_url)
-      .getPackage(this.config.package_id)
-      .then((pkg) => pkg.resources);
-    return this.config.file_format
-      ? resources.then((res) =>
-          res.filter((r) => r.format === this.config.file_format)
-        )
-      : resources;
-  };
-
-  /**
-   *
-   * @param fileName
-   * @returns
-   */
-  getFilePath = (fileName: string): string => {
-    return resolve(LOCAL_PATH, this.config.package_id, fileName);
+  getResources = async (): Promise<CkanResource[]> => {
+    const pkg = await this.ckan_api.getPackage(this.name);
+    let resources = pkg.resources;
+    if (this.file_format)
+      resources = resources.filter((r) => r.format === this.file_format);
+    return resources;
   };
 
   /**
@@ -63,53 +44,10 @@ export class CkanLocalCache {
    * @param resource
    * @returns
    */
-  getLocalPath = (resource: CkanResource): string => {
+  getLocalPath(resource: CkanResource): string {
     const lindex = resource.url.lastIndexOf("/");
     let fileName = lindex > 0 ? resource.url.substr(lindex + 1) : resource.url;
-    if (this.config.gzip === true) fileName += ".gz";
     return this.getFilePath(fileName);
-  };
-
-  /**
-   *
-   * @param resource
-   * @returns
-   */
-  checkIfNewer = (resource: CkanResource): Promise<boolean> => {
-    return new Promise((resolve, reject) => {
-      const localPath = this.getLocalPath(resource);
-      if (!existsSync(localPath)) return resolve(true);
-      stat(localPath, (err, stat) => {
-        if (err) {
-          reject(err);
-        } else {
-          const res_date = resource.last_modified || resource.created;
-          resolve(new Date(res_date).getTime() > stat.mtimeMs);
-        }
-      });
-    });
-  };
-
-  /**
-   *
-   * @param resource
-   * @returns
-   */
-  async saveResource(resource: CkanResource): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const remote = resource.url;
-      const local = this.getLocalPath(resource);
-      console.log("donwloading", remote, "->", local);
-      const file = createWriteStream(local);
-      const do_gzip = this.config.gzip;
-      get(remote, function (response) {
-        const w = do_gzip
-          ? response.pipe(createGzip()).pipe(file)
-          : response.pipe(file);
-        w.on("close", resolve);
-        w.on("error", reject);
-      });
-    });
   }
 
   /**
@@ -117,38 +55,31 @@ export class CkanLocalCache {
    * @param resource
    * @returns
    */
-  synchronizeResource = (resource: CkanResource): Promise<void> => {
-    return this.checkIfNewer(resource).then((newer) =>
-      newer ? this.saveResource(resource) : Promise.resolve()
-    );
-  };
-
-  ensureLocalFolder() {
-    const localdir = resolve(LOCAL_PATH, this.config.package_id);
-    if (!existsSync(localdir)) mkdirSync(localdir);
+  checkIfNewer(resource: CkanResource): boolean {
+    const local = this.getLocalPath(resource);
+    if (!existsSync(local)) return true;
+    const resTime = new Date(resource.created || resource.last_modified);
+    const stats = this.getStats(this.getLocalPath(resource));
+    return resTime.getTime() > stats.mtimeMs;
   }
+
+  /**
+   *
+   * @param resource
+   * @returns
+   */
+  synchronizeResource = async (resource: CkanResource): Promise<void> => {
+    if (this.checkIfNewer(resource)) {
+      await this.download(resource.url);
+    }
+  };
 
   /**
    *
    * @returns
    */
-  synchronize = (): Promise<void[]> => {
-    this.ensureLocalFolder();
-    return this.getResources().then((res) =>
-      Promise.all(res.map(this.synchronizeResource))
-    );
-  };
-
-  async forEachOnCsvFile(
-    fileName: string,
-    consumer: CsvConsumer
-  ): Promise<number> {
-    const localFile = this.getFilePath(
-      this.config.gzip === true && !fileName.endsWith(".gz")
-        ? fileName + ".gz"
-        : fileName
-    );
-    if (!existsSync(localFile)) return 0;
-    return await parseCsv(localFile, consumer, ";", true, this.config.gzip);
+  async synchronize(): Promise<void[]> {
+    const resources = await this.getResources();
+    return Promise.all(resources.map(this.synchronizeResource));
   }
 }

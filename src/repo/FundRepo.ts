@@ -1,4 +1,4 @@
-import { Fundo } from "../entities/Fundo";
+import { Fundo } from "../types/Fundo";
 
 export interface FundRepo {
   readFund(cnpj: number): Promise<Fundo>;

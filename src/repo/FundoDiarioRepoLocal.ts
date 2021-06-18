@@ -1,16 +1,16 @@
-import { FundoDiario } from "../entities/FundoDiario";
+import { FundoDiario } from "../types/FundoDiario";
 import { CkanLocalCache } from "./CkanLocalCache";
+import { CsvVisitor } from "./DataFolder";
 import { FundoDiarioCsvBuilder } from "./FundoDiarioCsvBuilder";
 import { FundoDiarioRepo } from "./FundoDiarioRepo";
-import { CsvConsumer } from "./TextRepo";
 
 export class FundoDiarioRepoLocal implements FundoDiarioRepo {
-  cache = new CkanLocalCache({
-    api_url: "http://dados.cvm.gov.br",
-    package_id: "fi-doc-inf_diario",
-    file_format: "CSV",
-    gzip: true,
-  });
+  cache = new CkanLocalCache(
+    "http://dados.cvm.gov.br",
+    "fi-doc-inf_diario",
+    "CSV",
+    true
+  );
 
   /**
    * Retorna as informações diárias de fundos para um dado ano e mês.
@@ -29,9 +29,23 @@ export class FundoDiarioRepoLocal implements FundoDiarioRepo {
     const p = cnpjs
       ? this.forEachFundoDiario(year, month, (fd) => {
           if (cnpjs.indexOf(fd.cnpj)) result.push(fd);
+          return true;
         })
-      : this.forEachFundoDiario(year, month, (fd) => result.push(fd));
+      : this.forEachFundoDiario(year, month, (fd) => {
+          result.push(fd);
+          return true;
+        });
     return p.then(() => result);
+  }
+
+  /**
+   *
+   * @param year
+   * @param month
+   * @returns
+   */
+  getFileName(year: number, month: number): string {
+    return `inf_diario_fi_${year}${("00" + month).substr(-2)}.csv`;
   }
 
   /**
@@ -41,26 +55,17 @@ export class FundoDiarioRepoLocal implements FundoDiarioRepo {
     console.log("FundoDiarioRepoLocal populating from start...");
     const end_date = new Date();
     const end_year = end_date.getFullYear();
-    this.cache.ensureLocalFolder();
     for (let year = 2017; year <= end_year; year++) {
       for (let month = 1; month <= 12; month++) {
         const dt = new Date(year, month - 1, 1);
         if (dt.getTime() > end_date.getTime()) break;
-        const url = `http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_${year}${(
-          "00" + month
-        ).substr(-2)}.csv`;
-        try {
-          await this.cache.saveResource({
-            url: url,
-            format: "CSV",
-            id: url,
-            created: new Date().toISOString(),
-          });
-        } catch (err) {
-          console.error(err);
-        }
+        const url =
+          "http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/" +
+          this.getFileName(year, month);
+        await this.cache.download(url);
       }
     }
+    console.log("FundoDiarioRepoLocal populating completed.");
   }
 
   /**
@@ -84,30 +89,47 @@ export class FundoDiarioRepoLocal implements FundoDiarioRepo {
    * @param month
    * @returns
    */
-  getFileName(year: number, month: number) {
-    const localFile = this.cache.getFilePath(
-      `inf_diario_fi_${year}${("00" + month).substr(-2)}.csv`
-    );
-    return this.cache.config.gzip === true ? localFile + ".gz" : localFile;
+  getFilePath(year: number, month: number) {
+    return this.cache.getFilePath(this.getFileName(year, month));
   }
 
+  /**
+   *
+   * @param year
+   * @param month
+   * @param consumer
+   * @returns
+   */
   async forEachFundoDiario(
     year: number,
     month: number,
-    consumer: (fd: FundoDiario) => void
+    consumer: (fd: FundoDiario) => boolean
+  ): Promise<number> {
+    return await this.forEachFundoDiarioInFile(
+      this.getFileName(year, month),
+      consumer
+    );
+  }
+
+  /**
+   *
+   * @param fileName
+   * @param consumer
+   * @returns
+   */
+  async forEachFundoDiarioInFile(
+    fileName: string,
+    consumer: (fd: FundoDiario) => boolean
   ): Promise<number> {
     const builder = new FundoDiarioCsvBuilder();
-    const csvConsumer: CsvConsumer = (
+    const csvConsumer: CsvVisitor = (
       row: string[],
       _line_number: number,
       headers: string[]
     ) => {
       const fd = builder.build(row, headers);
-      consumer(fd);
+      return consumer(fd);
     };
-    return await this.cache.forEachOnCsvFile(
-      `inf_diario_fi_${year}${("00" + month).substr(-2)}.csv`,
-      csvConsumer
-    );
+    return await this.cache.forEachCsvRow(fileName, ";", csvConsumer);
   }
 }

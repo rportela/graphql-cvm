@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { FundoDiario } from "../entities/FundoDiario";
+import { FundoDiario } from "../types/FundoDiario";
 import { FundoDiarioCsvBuilder } from "./FundoDiarioCsvBuilder";
 import { FundoDiarioRepo } from "./FundoDiarioRepo";
 import { CsvConsumer, parseCsv } from "./TextRepo";

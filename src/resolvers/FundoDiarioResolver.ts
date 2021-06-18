@@ -1,5 +1,5 @@
 import { Arg, Int, Query, Resolver } from "type-graphql";
-import { FundoDiario } from "../entities/FundoDiario";
+import { FundoDiario } from "../types/FundoDiario";
 import { FundoDiarioService } from "../services/FundoDiarioService";
 import Long from "../utils/Long";
 

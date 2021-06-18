@@ -1,4 +1,4 @@
-import { Fundo } from "../entities/Fundo";
+import { Fundo } from "../types/Fundo";
 import { dateYmd, digitsOnly } from "../utils/Parsers";
 
 export class FundoCadastroCsvBuilder {
@@ -120,7 +120,7 @@ export class FundoCadastroCsvBuilder {
     target.controlador_nome = value;
   };
 
-  build(row: string[], headers: string[]): Fundo {
+  build = (row: string[], headers: string[]): Fundo => {
     const fd = new Fundo();
     fd.extraido_em = new Date();
     for (let i = 0; i < headers.length; i++) {
@@ -130,5 +130,5 @@ export class FundoCadastroCsvBuilder {
       }
     }
     return fd;
-  }
+  };
 }

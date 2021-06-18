@@ -1,4 +1,4 @@
-import { Fundo } from "../entities/Fundo";
+import { Fundo } from "../types/Fundo";
 
 export interface FundoCadastroRepo {
   todosOsFundos(): Promise<Fundo[]>;
