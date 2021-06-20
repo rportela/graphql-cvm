@@ -2,7 +2,7 @@ import { Field, ObjectType } from "type-graphql";
 import Long from "../utils/Long";
 
 @ObjectType({ description: "Dados cadastrais do fundo na CVM." })
-export class Fundo {
+export class FundoCadastro {
   @Field({ description: "Tipo de fundo." })
   tipo: string;
   @Field(() => Long, { description: "CNPJ do fundo." })

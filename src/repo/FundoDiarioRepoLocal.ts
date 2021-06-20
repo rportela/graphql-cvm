@@ -1,3 +1,4 @@
+import { CkanResource } from "../types";
 import { FundoDiario } from "../types/FundoDiario";
 import { CkanLocalCache } from "./CkanLocalCache";
 import { CsvVisitor } from "./DataFolder";
@@ -71,16 +72,8 @@ export class FundoDiarioRepoLocal implements FundoDiarioRepo {
   /**
    * Synchronizes local resources with CKAN data portal.
    */
-  async synchronize() {
-    console.log("FundoDiarioRepoLocal starting...");
-    const startTime = new Date();
-    await this.cache.synchronize();
-    const endTime = new Date();
-    console.log(
-      "...FundoDiarioRepoLocal completed, took",
-      (endTime.getTime() - startTime.getTime()) / 1000.0,
-      "segs."
-    );
+  async syncronize(): Promise<CkanResource[]> {
+    return this.cache.synchronize();
   }
 
   /**

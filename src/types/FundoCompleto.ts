@@ -1,7 +1,8 @@
-import { Fundo } from "./Fundo";
+import { FundoCadastro } from "./FundoCadastro";
 import { FundoDiario } from "./FundoDiario";
 
-export default interface FundoCompleto {
-  cadastro: Fundo;
+export interface FundoCompleto {
+  cadastro: FundoCadastro;
+  historico?: FundoCadastro[];
   diario: Record<string, FundoDiario>;
 }

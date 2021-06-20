@@ -1,11 +1,11 @@
 import { Arg, Int, Query, Resolver } from "type-graphql";
+import { FundoDiarioRepoLocal } from "../repo/FundoDiarioRepoLocal";
 import { FundoDiario } from "../types/FundoDiario";
-import { FundoDiarioService } from "../services/FundoDiarioService";
 import Long from "../utils/Long";
 
 @Resolver()
 export class FundoDiarioResolver {
-  service = new FundoDiarioService();
+  repo = new FundoDiarioRepoLocal();
 
   @Query((returns) => [FundoDiario])
   async diario(
@@ -14,6 +14,6 @@ export class FundoDiarioResolver {
     @Arg("month", () => Int) month?: number
   ) {
     console.log(cnpjs, year, month);
-    return this.service.fundoDiarioMensal(year, month, cnpjs);
+    return this.repo.fundoDiarioMensal(year, month, cnpjs);
   }
 }

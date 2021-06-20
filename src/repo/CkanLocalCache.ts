@@ -1,6 +1,6 @@
 import { existsSync } from "fs";
-import { CkanResource } from "../types";
 import { CkanApi } from "../services/CkanApi";
+import { CkanResource } from "../types";
 import { DataFolder } from "./DataFolder";
 
 const LOCAL_PATH = ".data/raw";
@@ -70,9 +70,12 @@ export class CkanLocalCache extends DataFolder {
    * @param resource
    * @returns
    */
-  synchronizeResource = async (resource: CkanResource): Promise<void> => {
+  synchronizeResource = async (resource: CkanResource): Promise<boolean> => {
     if (this.checkIfNewer(resource)) {
       await this.download(resource.url);
+      return true;
+    } else {
+      return false;
     }
   };
 
@@ -80,8 +83,21 @@ export class CkanLocalCache extends DataFolder {
    *
    * @returns
    */
-  async synchronize(): Promise<void[]> {
+  async synchronize(): Promise<CkanResource[]> {
+    const startTime = new Date();
+    console.log("Synchronization of", this.name, "starting...", startTime);
+    const updated: CkanResource[] = [];
     const resources = await this.getResources();
-    return Promise.all(resources.map(this.synchronizeResource));
+    for (const res of resources) {
+      if (await this.synchronizeResource(res)) updated.push(res);
+    }
+    const endTime = new Date();
+    console.log(
+      this.name,
+      "completed, took",
+      (endTime.getTime() - startTime.getTime()) / 1000.0,
+      "segs."
+    );
+    return updated;
   }
 }

@@ -7,12 +7,13 @@ import {
   ReadStream,
   Stats,
   statSync,
-  WriteStream
+  WriteStream,
 } from "fs";
-import { fetch } from "node-fetch";
+import fetch from "node-fetch";
 import { resolve } from "path";
 import readline from "readline";
 import { createGunzip, createGzip, Gunzip } from "zlib";
+import { fileNameFromUrl } from "../utils/Parsers";
 
 const LOCAL_PATH = ".data";
 
@@ -86,10 +87,10 @@ export class DataFolder {
    * @returns
    */
   getReadStream(fileName: string): ReadStream | Gunzip {
-    const rs = createReadStream(this.getFilePath(fileName), {
-      encoding: this.encoding,
-    });
-    return this.gzip ? rs.pipe(createGunzip()) : rs;
+    let rs: ReadStream | Gunzip = createReadStream(this.getFilePath(fileName));
+    if (this.gzip) rs = rs.pipe(createGunzip());
+    if (this.encoding) rs.setEncoding(this.encoding);
+    return rs;
   }
 
   /**
@@ -100,9 +101,7 @@ export class DataFolder {
    * @returns
    */
   getWriteStream(fileName: string): WriteStream {
-    const ws = createWriteStream(this.getFilePath(fileName), {
-      encoding: this.encoding,
-    });
+    const ws = createWriteStream(this.getFilePath(fileName));
     return this.gzip ? createGzip().pipe(ws) : ws;
   }
 
@@ -124,15 +123,12 @@ export class DataFolder {
    * @returns
    */
   async download(url: string, fileName?: string): Promise<void> {
-    if (!fileName) {
-      const ipos = url.lastIndexOf("/");
-      fileName = ipos > 0 ? url.substr(ipos + 1) : url;
-    }
     return fetch(url)
-      .then((res) => res.body())
+      .then((res) => res.body)
       .then(
         (body) =>
           new Promise((resolve, reject) => {
+            if (!fileName) fileName = fileNameFromUrl(url);
             body
               .pipe(this.getWriteStream(fileName))
               .on("close", resolve)

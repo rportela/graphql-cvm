@@ -9,6 +9,11 @@ export function dateYmd(input: string): Date | null {
   return new Date(parseInt(spl[0]), parseInt(spl[1]) - 1, parseInt(spl[2]));
 }
 
+export function fileNameFromUrl(url: string): string {
+  const ipos = url.lastIndexOf("/");
+  return ipos > 0 ? url.substr(ipos + 1) : url;
+}
+
 export function buildFromMapping<T>(
   constructor: () => T,
   headers: string[],

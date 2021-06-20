@@ -1,7 +1,7 @@
-import { Fundo } from "../types/Fundo";
+import { FundoCadastro } from "../types/FundoCadastro";
 
 export interface FundoCadastroRepo {
-  todosOsFundos(): Promise<Fundo[]>;
-  fundosEmOperacao(): Promise<Fundo[]>;
-  fundoBusca(filter: string): Promise<Fundo[]>;
+  todosOsFundos(): Promise<FundoCadastro[]>;
+  fundosEmOperacao(): Promise<FundoCadastro[]>;
+  fundoBusca(filter: string): Promise<FundoCadastro[]>;
 }
