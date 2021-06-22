@@ -17,10 +17,10 @@ async function createSyncObject(repo: FundoCadastroRepoLocal): Promise<Record<nu
   return syncObject;
 }
 
-async function updateSyncObject(repo: FundoCadastroRepoLocal, syncObject: Record<number, FundoCadastro[]> ) {
+async function updateSyncObject(repo: FundoCadastroRepoLocal, syncObject: Record<number, FundoCadastro[]>) {
 
-  for(const cnpj in Object.keys(syncObject)){
-    await repo.update
+  for (const cnpj in Object.keys(syncObject)) {
+    await repo.updateLocal(cnpj, syncObject[cnpj]);
   }
 
 }

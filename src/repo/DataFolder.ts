@@ -13,6 +13,7 @@ import fetch from "node-fetch";
 import { resolve } from "path";
 import readline from "readline";
 import { createGunzip, createGzip, Gunzip } from "zlib";
+import { readCsv } from "../utils/Files";
 import { ensureDirs } from "../utils/Files";
 import { fileNameFromUrl } from "../utils/Parsers";
 
@@ -189,35 +190,5 @@ export class DataFolder {
       } else return visit(row, lineNumber, headers);
     };
     return await this.forEachLine(fileName, visitor);
-  }
-
-  /**
-   * Reads a csv file to an array of Records<string, string>.
-   * This method assumes that the first row has headers and all columns are of type string.
-   *
-   * @param fileName
-   * @param separator
-   * @returns
-   */
-  async readCsv(
-    fileName: string,
-    separator: string
-  ): Promise<Record<string, string>[]> {
-    let headers: string[];
-    let rows = [];
-    const visitor = (line: string, lineNumber: number): boolean => {
-      const row = line.split(separator);
-      if (lineNumber === 0) headers = row;
-      else {
-        const entry = {};
-        for (let i = 0; i < row.length; i++) {
-          entry[headers[i]] = row[i];
-        }
-        rows.push(entry);
-      }
-      return true;
-    };
-    await this.forEachLine(fileName, visitor);
-    return rows;
   }
 }
