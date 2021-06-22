@@ -1,11 +1,18 @@
+import { ReadStream } from "fs";
+import { resolve } from "path";
+import { FundoCadastroCsvBuilder } from "../builders/FundoCadastroCsvBuilder";
 import { CkanResource } from "../types";
 import { FundoCadastro } from "../types/FundoCadastro";
+import { ensureDirs, forEachCsvRow, readJsonFile, writeJsonFile } from "../utils/Files";
 import { CkanLocalCache } from "./CkanLocalCache";
-import { CsvVisitor, DataFolder } from "./DataFolder";
-import { FundoCadastroCsvBuilder } from "../builders/FundoCadastroCsvBuilder";
+import { CsvVisitor } from "./DataFolder";
 import { FundoCadastroRepo } from "./FundoCadastroRepo";
 
 export class FundoCadastroRepoLocal implements FundoCadastroRepo {
+
+  constructor() {
+    ensureDirs(resolve("./.data/entities/cvm/fi-cad"));
+  }
 
   async fundoBusca(filter: string): Promise<FundoCadastro[]> {
     const fundos = [];
@@ -50,10 +57,11 @@ export class FundoCadastroRepoLocal implements FundoCadastroRepo {
       const fd = builder.build(row, headers);
       return consumer(fd);
     };
-    return await this.ckanCache.forEachCsvRow("cad_fi.csv", ";", csvConsumer);
+    return await forEachCsvRow(this.ckanCache.getReadStream('cad_fi.csv.gz') as ReadStream, ";", csvConsumer);
   }
 
   ckanCache = new CkanLocalCache(
+    "cvm",
     "http://dados.cvm.gov.br",
     "fi-cad",
     "CSV",
@@ -61,9 +69,13 @@ export class FundoCadastroRepoLocal implements FundoCadastroRepo {
     "latin1"
   );
 
-  localCache = new DataFolder("fi-cad", true, "./data/entities/cvm");
-
-  updateLocal(cnpj: string | number, data: FundoCadastro){
-    return write
+  async updateCadastro(cnpj: string | number, data: FundoCadastro[]) {
+    return await writeJsonFile(data, `./.data/entities/cvm/fi-cad/${cnpj}.json.gz`, true);
   }
+
+  async readCadastro(cnpj: string | number): Promise<FundoCadastro[]> {
+    return await readJsonFile(`./data/entities/cvm/fi-cad/${cnpj}.json.gz`, true);
+  }
+
+
 }

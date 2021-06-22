@@ -1,7 +1,9 @@
 import { existsSync } from "fs";
+import { resolve } from "path";
 import { CkanApi } from "../services/CkanApi";
 import { CkanResource } from "../types";
 import { DataFolder } from "./DataFolder";
+import { download } from "../utils/Files";
 
 const LOCAL_PATH = ".data/raw";
 
@@ -18,13 +20,14 @@ export class CkanLocalCache extends DataFolder {
    * @param config
    */
   constructor(
+    source: string,
     api_url: string,
     package_id: string,
     file_format?: string,
     gzip?: boolean,
     encoding?: BufferEncoding
   ) {
-    super(package_id, gzip, LOCAL_PATH);
+    super(package_id, gzip, resolve(LOCAL_PATH, source));
     this.encoding = encoding;
     this.ckan_api = new CkanApi(api_url);
     this.file_format = file_format;
@@ -73,7 +76,7 @@ export class CkanLocalCache extends DataFolder {
    */
   synchronizeResource = async (resource: CkanResource): Promise<boolean> => {
     if (this.checkIfNewer(resource)) {
-      await this.download(resource.url);
+      await download(resource.url, this.getLocalPath(resource), this.gzip);
       return true;
     } else {
       return false;

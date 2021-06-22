@@ -44,16 +44,14 @@ export interface ZipEntryVisitor {
  * @param encoding
  * @returns
  */
-export async function getReadStream(
+export function getReadStream(
   source: string | ReadStream,
   gunzip?: boolean,
   encoding?: BufferEncoding
-): Promise<ReadStream | Gunzip> {
+): ReadStream | Gunzip {
   let stream: ReadStream | Gunzip;
-  if (source instanceof String) {
-    stream = source.startsWith("http")
-      ? await fetch(source).then((res) => res.body)
-      : createReadStream(source as PathLike);
+  if (typeof (source) === "string") {
+    stream = createReadStream(source as PathLike)
   } else stream = source as ReadStream;
   if (gunzip === true) stream = stream.pipe(createGunzip());
   if (encoding) stream.setEncoding(encoding);
@@ -67,12 +65,12 @@ export async function getReadStream(
  * @param gzip
  * @returns
  */
-export async function getWriteStream(
+export function getWriteStream(
   target: string | WriteStream,
   gzip?: boolean
-) {
+): WriteStream {
   let ws = target instanceof WriteStream ? target : createWriteStream(target);
-  return gzip === true ? createGzip().pipe(ws) : ws;
+  return (gzip === true) ? createGzip().pipe(ws) : ws;
 }
 
 /**
@@ -118,6 +116,29 @@ export async function readJsonFile<T>(
 }
 
 /**
+  * This method simply downloads from an url and may decide the file name if none is provided.
+  *
+  * @param url
+  * @param fileName
+  * @returns
+  */
+export async function download(url: string, target: string, gzip?: boolean) {
+  console.log("downloading", url, target, gzip);
+  return fetch(url)
+    .then((res) => res.body)
+    .then(
+      (body) =>
+        new Promise((resolve, reject) => {
+          const ws = getWriteStream(target, gzip);
+          body
+            .pipe(ws)
+            .on("close", resolve)
+            .on("error", reject);
+        })
+    );
+}
+
+/**
  * Helpful method to visit lines in a source;
  * The visitor should return true if more lines should be read from the source.
  * Or false, otherwise.
@@ -135,6 +156,7 @@ export async function forEachLine(
   encoding?: BufferEncoding
 ): Promise<number> {
   const stream = await getReadStream(source, gunzp, encoding);
+
   let lineNumber = 0;
   const rl = readline.createInterface({
     input: stream,

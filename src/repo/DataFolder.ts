@@ -1,21 +1,14 @@
 import {
   createReadStream,
-  createWriteStream,
-  existsSync,
-  mkdirSync,
-  readdirSync,
+  createWriteStream, readdirSync,
   ReadStream,
   Stats,
   statSync,
-  WriteStream,
+  WriteStream
 } from "fs";
-import fetch from "node-fetch";
 import { resolve } from "path";
-import readline from "readline";
 import { createGunzip, createGzip, Gunzip } from "zlib";
-import { readCsv } from "../utils/Files";
 import { ensureDirs } from "../utils/Files";
-import { fileNameFromUrl } from "../utils/Parsers";
 
 const LOCAL_PATH = ".data";
 
@@ -118,77 +111,6 @@ export class DataFolder {
     return statSync(this.getFilePath(fileName));
   }
 
-  /**
-   * This method simply downloads from an url and may decide the file name if none is provided.
-   *
-   * @param url
-   * @param fileName
-   * @returns
-   */
-  async download(url: string, fileName?: string): Promise<void> {
-    return fetch(url)
-      .then((res) => res.body)
-      .then(
-        (body) =>
-          new Promise((resolve, reject) => {
-            if (!fileName) fileName = fileNameFromUrl(url);
-            body
-              .pipe(this.getWriteStream(fileName))
-              .on("close", resolve)
-              .on("error", reject);
-          })
-      );
-  }
 
-  /**
-   * This method reads a file line by line.
-   * You should provide a visitor that returns true if the next line should be read
-   * or false if no more lines should be read.
-   *
-   * @param fileName
-   * @param visit
-   * @returns
-   */
-  async forEachLine(fileName: string, visit: LineVisitor): Promise<number> {
-    let lineNumber = 0;
-    const rl = readline.createInterface({
-      input: this.getReadStream(fileName),
-    });
 
-    for await (const line of rl) {
-      if (!visit(line, lineNumber)) break;
-      lineNumber++;
-    }
-
-    rl.close();
-    return lineNumber;
-  }
-
-  /**
-   * This method parses a CSV file using the encoding set on this data folder class.
-   * You should provide the separator and a visitor that returns true if more lines should be read or false otherwise.
-   * Optionally you can specify if the first row has headers or not.
-   *
-   * @param fileName
-   * @param separator
-   * @param visit
-   * @param headerRow
-   * @returns
-   */
-  async forEachCsvRow(
-    fileName: string,
-    separator: string,
-    visit: CsvVisitor,
-    headerRow = true
-  ): Promise<number> {
-    let headers: string[];
-    const visitor = (line: string, lineNumber: number): boolean => {
-      const row = line.split(separator);
-      if (headerRow === true && lineNumber === 0) {
-        headers = row;
-        return true;
-      } else return visit(row, lineNumber, headers);
-    };
-    return await this.forEachLine(fileName, visitor);
-  }
 }

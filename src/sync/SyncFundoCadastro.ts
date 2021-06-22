@@ -1,7 +1,5 @@
 import { FundoCadastroRepoLocal } from "../repo/FundoCadastroRepoLocal";
-import { FundoCompletoRepoLocal } from "../repo/FundoCompletoRepoLocal";
 import { FundoCadastro } from "../types/FundoCadastro";
-import { FundoCompleto } from "../types/FundoCompleto";
 
 async function createSyncObject(repo: FundoCadastroRepoLocal): Promise<Record<number, FundoCadastro[]>> {
   const syncObject: Record<number, FundoCadastro[]> = {};
@@ -18,11 +16,9 @@ async function createSyncObject(repo: FundoCadastroRepoLocal): Promise<Record<nu
 }
 
 async function updateSyncObject(repo: FundoCadastroRepoLocal, syncObject: Record<number, FundoCadastro[]>) {
-
   for (const cnpj in Object.keys(syncObject)) {
-    await repo.updateLocal(cnpj, syncObject[cnpj]);
+    await repo.updateCadastro(cnpj, syncObject[cnpj]);
   }
-
 }
 
 
@@ -32,9 +28,11 @@ export default async function syncFundoCadastro() {
   console.log("Syncing fundo cadastro...", start_time);
 
   const repo = new FundoCadastroRepoLocal();
-
-  await repo.syncronize();
-
+  const res = await repo.syncronize();
+  //if (res && res.length > 0) {
+    const syncObject = await createSyncObject(repo);
+    await updateSyncObject(repo, syncObject);
+  //}
 
   console.log(
     "... complete fundo cadastro. Took: ",
