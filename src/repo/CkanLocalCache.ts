@@ -9,6 +9,7 @@ const LOCAL_PATH = ".data/raw";
  * This class makes a local cache of ckan resources.
  */
 export class CkanLocalCache extends DataFolder {
+
   ckan_api: CkanApi;
   file_format?: string;
 

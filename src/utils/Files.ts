@@ -192,11 +192,10 @@ export async function forEachZipEntry(
 
 
 export function ensureDirs(path: string) {
-  const spl = path.split("/");
+  const spl = (path.startsWith("/") ? path.substr(1) : path).split("/");
   let dir: string | undefined;
   for (const part of spl) {
-    dir = dir ? resolve(dir, part) : resolve(part);
-    console.log(dir);
+    dir = dir ? resolve(dir, part) : resolve("/" + part);
     if (!existsSync(dir)) mkdirSync(dir);
   }
 }

@@ -57,6 +57,7 @@ export class DataFolder {
     this.name = name;
     this.gzip = gzip;
     this.folder = resolve(parent, name);
+    console.log(__dirname, parent, name, this.folder);
     ensureDirs(this.folder);
   }
 
