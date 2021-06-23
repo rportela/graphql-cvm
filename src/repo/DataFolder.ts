@@ -1,6 +1,6 @@
 import {
   createReadStream,
-  createWriteStream, readdirSync,
+  createWriteStream, mkdirSync, readdirSync,
   ReadStream,
   Stats,
   statSync,
@@ -8,7 +8,6 @@ import {
 } from "fs";
 import { resolve } from "path";
 import { createGunzip, createGzip, Gunzip } from "zlib";
-import { ensureDirs } from "../utils/Files";
 
 const LOCAL_PATH = ".data";
 
@@ -51,8 +50,7 @@ export class DataFolder {
     this.name = name;
     this.gzip = gzip;
     this.folder = resolve(parent, name);
-    console.log(__dirname, parent, name, this.folder);
-    ensureDirs(this.folder);
+    mkdirSync(this.folder, { recursive: true });
   }
 
   /**

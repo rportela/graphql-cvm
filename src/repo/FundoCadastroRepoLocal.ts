@@ -1,9 +1,9 @@
-import { ReadStream } from "fs";
+import { mkdirSync, ReadStream } from "fs";
 import { resolve } from "path";
 import { FundoCadastroCsvBuilder } from "../builders/FundoCadastroCsvBuilder";
 import { CkanResource } from "../types";
 import { FundoCadastro } from "../types/FundoCadastro";
-import { ensureDirs, forEachCsvRow, readJsonFile, writeJsonFile } from "../utils/Files";
+import { forEachCsvRow, readJsonFile, writeJsonFile } from "../utils/Files";
 import { CkanLocalCache } from "./CkanLocalCache";
 import { CsvVisitor } from "./DataFolder";
 import { FundoCadastroRepo } from "./FundoCadastroRepo";
@@ -11,7 +11,7 @@ import { FundoCadastroRepo } from "./FundoCadastroRepo";
 export class FundoCadastroRepoLocal implements FundoCadastroRepo {
 
   constructor() {
-    ensureDirs(resolve("./.data/entities/cvm/fi-cad"));
+    mkdirSync(resolve("./.data/entities/cvm/fi-cad"), { recursive: true });
   }
 
   async fundoBusca(filter: string): Promise<FundoCadastro[]> {

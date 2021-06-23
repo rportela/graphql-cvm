@@ -1,18 +1,13 @@
 import {
   createReadStream,
   createWriteStream,
-  existsSync,
-
-  mkdirSync,
-
-  PathLike,
+  existsSync, PathLike,
   ReadStream,
   WriteStream
 } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import JSZip from "jszip";
 import fetch from "node-fetch";
-import { resolve } from "path";
 import readline from "readline";
 import { createGunzip, createGzip, Gunzip, gunzipSync, gzipSync } from "zlib";
 
@@ -251,15 +246,5 @@ export async function forEachZipEntry(
   for (const file of files) {
     const zipEntry = zip.file(file);
     await vistor(zipEntry);
-  }
-}
-
-
-export function ensureDirs(path: string) {
-  const spl = (path.startsWith("/") ? path.substr(1) : path).split("/");
-  let dir: string | undefined;
-  for (const part of spl) {
-    dir = dir ? resolve(dir, part) : resolve("/" + part);
-    if (!existsSync(dir)) mkdirSync(dir);
   }
 }
