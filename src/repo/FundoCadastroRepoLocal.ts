@@ -2,7 +2,7 @@ import { CkanResource } from "../types";
 import { FundoCadastro } from "../types/FundoCadastro";
 import { CkanLocalCache } from "./CkanLocalCache";
 import { CsvVisitor } from "./DataFolder";
-import { FundoCadastroCsvBuilder } from "./FundoCadastroCsvBuilder";
+import { FundoCadastroCsvBuilder } from "../builders/FundoCadastroCsvBuilder";
 import { FundoCadastroRepo } from "./FundoCadastroRepo";
 
 export class FundoCadastroRepoLocal implements FundoCadastroRepo {

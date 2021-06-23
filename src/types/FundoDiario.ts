@@ -3,8 +3,8 @@ import Long from "../utils/Long";
 
 @ObjectType({ description: "Dados diarios dos fundos de investimento na CVM." })
 export class FundoDiario {
-  @Field(() => Long, { description: "CNPJ do fundo" })
-  cnpj: number;
+  @Field(() => Long, { description: "CNPJ do fundo", nullable: true })
+  cnpj?: number;
   @Field({ description: "Data de competência do documento" })
   competencia: Date;
   @Field({ description: "Valor da cota" })

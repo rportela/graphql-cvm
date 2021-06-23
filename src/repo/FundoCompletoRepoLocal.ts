@@ -1,6 +1,7 @@
 import { existsSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import { resolve } from "path";
+import { createGunzip, gunzip, gunzipSync, gzipSync } from "zlib";
 import { FundoCompleto } from "../types/FundoCompleto";
 import { FundoCompletoRepo } from "./FundoCompletoRepo";
 
@@ -9,16 +10,18 @@ const REPO_PATH = "./.data/entities/fundos";
 export class FundoCompletoRepoLocal implements FundoCompletoRepo {
   async save(completo: FundoCompleto): Promise<void> {
     const content = JSON.stringify(completo);
-    const fileName = resolve(REPO_PATH, `${completo.cadastro.cnpj}.json`);
-    await writeFile(fileName, content);
+    const fileName = resolve(REPO_PATH, `${completo.cadastro.cnpj}.json.gz`);
+    const gcontent = gzipSync(content);
+    await writeFile(fileName, gcontent);
   }
 
   async load(cnpj: number): Promise<FundoCompleto | undefined> {
-    const fileName = resolve(REPO_PATH, `${cnpj}.json`);
+    const fileName = resolve(REPO_PATH, `${cnpj}.json.gz`);
     try {
       if (!existsSync(fileName)) return undefined;
       const buff = await readFile(fileName);
-      const content = buff.toString();
+      const gbuff = gunzipSync(buff);
+      const content = gbuff.toString();
       return JSON.parse(content);
     } catch (err) {
       console.error(fileName);

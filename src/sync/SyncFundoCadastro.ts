@@ -11,7 +11,7 @@ async function createSyncObject() {
       completo = {
         cadastro: cad,
         historico: [],
-        diario: {},
+        diario: [],
       };
       fundos[cad.cnpj] = completo;
     }

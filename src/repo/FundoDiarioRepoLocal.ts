@@ -2,7 +2,7 @@ import { CkanResource } from "../types";
 import { FundoDiario } from "../types/FundoDiario";
 import { CkanLocalCache } from "./CkanLocalCache";
 import { CsvVisitor } from "./DataFolder";
-import { FundoDiarioCsvBuilder } from "./FundoDiarioCsvBuilder";
+import { FundoDiarioCsvBuilder } from "../builders/FundoDiarioCsvBuilder";
 import { FundoDiarioRepo } from "./FundoDiarioRepo";
 
 export class FundoDiarioRepoLocal implements FundoDiarioRepo {

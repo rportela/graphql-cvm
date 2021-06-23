@@ -39,8 +39,11 @@ async function updateFundoCompleto(
 ) {
   const fundo = await repo.load(cnpj);
   for (const diario of diarios) {
-    const key = diario.competencia.toISOString().substr(0, 10);
-    fundo.diario[key] = diario;
+    const index = fundo.diario.findIndex(
+      (d) => d.competencia === diario.competencia
+    );
+    if (index >= 0) fundo.diario[index] = diario;
+    else fundo.diario.push(diario);
   }
   await repo.save(fundo);
 }

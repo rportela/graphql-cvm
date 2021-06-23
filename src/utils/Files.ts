@@ -3,7 +3,7 @@ import {
   createWriteStream,
   PathLike,
   ReadStream,
-  WriteStream
+  WriteStream,
 } from "fs";
 import { readFile } from "fs/promises";
 import JSZip from "jszip";
@@ -29,7 +29,7 @@ export interface CsvVisitor {
  *
  */
 export interface ZipEntryVisitor {
-  (entry: JSZip.JSZipObject): void;
+  (entry: JSZip.JSZipObject): Promise<void>;
 }
 
 /**
@@ -181,6 +181,6 @@ export async function forEachZipEntry(
   const files = Object.keys(zip.files);
   for (const file of files) {
     const zipEntry = zip.file(file);
-    vistor(zipEntry);
+    await vistor(zipEntry);
   }
 }

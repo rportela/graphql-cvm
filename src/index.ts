@@ -1,6 +1,6 @@
 import { ApolloServer } from "apollo-server-express";
 import express from "express";
-import { Server } from "node:http";
+import { Server } from "http";
 import "reflect-metadata";
 import { buildTypeDefsAndResolvers } from "type-graphql";
 //import { authMiddleware } from "./authentication";
