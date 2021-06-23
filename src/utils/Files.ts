@@ -1,15 +1,16 @@
 import {
   createReadStream,
   createWriteStream,
+  existsSync,
   PathLike,
   ReadStream,
   WriteStream,
 } from "fs";
-import { readFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import JSZip from "jszip";
 import fetch from "node-fetch";
 import readline from "readline";
-import { createGunzip, createGzip, Gunzip } from "zlib";
+import { createGunzip, createGzip, Gunzip, gunzipSync, gzipSync } from "zlib";
 
 /**
  * A line visitor should consume a text line and return true if more lines should be read or false if there are no more relevant lines to be consumed.
@@ -68,6 +69,48 @@ export async function getWriteStream(
 ) {
   let ws = target instanceof WriteStream ? target : createWriteStream(target);
   return gzip === true ? createGzip().pipe(ws) : ws;
+}
+
+/**
+ *
+ * @param source
+ * @param target
+ * @param gzip
+ */
+export async function writeJsonFile<T>(
+  source: T,
+  target: PathLike,
+  gzip?: boolean
+) {
+  const content = JSON.stringify(source);
+  if (gzip === true) {
+    const gcontent = gzipSync(content);
+    await writeFile(target, gcontent);
+  } else {
+    await writeFile(target, content);
+  }
+}
+
+/**
+ *
+ * @param source
+ * @param gzip
+ * @returns
+ */
+export async function readJsonFile<T>(
+  source: PathLike,
+  gzip?: boolean
+): Promise<T | undefined> {
+  if (!existsSync(source)) return undefined;
+  const buff = await readFile(source);
+  let content: string;
+  if (gzip === true) {
+    const gbuff = gunzipSync(buff);
+    content = gbuff.toString();
+  } else {
+    content = buff.toString();
+  }
+  return JSON.parse(content);
 }
 
 /**
