@@ -14,6 +14,7 @@ import { resolve } from "path";
 import readline from "readline";
 import { createGunzip, createGzip, Gunzip } from "zlib";
 import { readCsv } from "../utils/Files";
+import { ensureDirs } from "../utils/Files";
 import { fileNameFromUrl } from "../utils/Parsers";
 
 const LOCAL_PATH = ".data";
@@ -57,7 +58,7 @@ export class DataFolder {
     this.name = name;
     this.gzip = gzip;
     this.folder = resolve(parent, name);
-    if (!existsSync(this.folder)) mkdirSync(this.folder);
+    ensureDirs(this.folder);
   }
 
   /**
