@@ -4,6 +4,7 @@ import { CkanLocalCache } from "./CkanLocalCache";
 import { CsvVisitor } from "./DataFolder";
 import { FundoDiarioCsvBuilder } from "../builders/FundoDiarioCsvBuilder";
 import { FundoDiarioRepo } from "./FundoDiarioRepo";
+import { download } from "../utils/Files";
 
 export class FundoDiarioRepoLocal implements FundoDiarioRepo {
   cache = new CkanLocalCache(
@@ -29,13 +30,13 @@ export class FundoDiarioRepoLocal implements FundoDiarioRepo {
     const result: FundoDiario[] = [];
     const p = cnpjs
       ? this.forEachFundoDiario(year, month, (fd) => {
-          if (cnpjs.indexOf(fd.cnpj)) result.push(fd);
-          return true;
-        })
+        if (cnpjs.indexOf(fd.cnpj)) result.push(fd);
+        return true;
+      })
       : this.forEachFundoDiario(year, month, (fd) => {
-          result.push(fd);
-          return true;
-        });
+        result.push(fd);
+        return true;
+      });
     return p.then(() => result);
   }
 
@@ -63,7 +64,7 @@ export class FundoDiarioRepoLocal implements FundoDiarioRepo {
         const url =
           "http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/" +
           this.getFileName(year, month);
-        await this.cache.download(url);
+        //await download(url, );
       }
     }
     console.log("FundoDiarioRepoLocal populating completed.");

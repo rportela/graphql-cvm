@@ -2,9 +2,9 @@ import { FundoCarteiraItem } from "../types/FundoCarteiraItem";
 import { dateYmd, digitsOnly } from "../utils/Parsers";
 import { CsvBuilder } from "./CsvBuilder";
 
-export class FundoCarteiraItemCsvBuilder<
+export class FundoCarteiraCsvBuilder<
   T extends FundoCarteiraItem
-> extends CsvBuilder<T> {
+  > extends CsvBuilder<T> {
   CNPJ_FUNDO = (value: string, target: T) => {
     target.cnpj = digitsOnly(value);
   };

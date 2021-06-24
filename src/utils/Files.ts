@@ -2,8 +2,7 @@ import {
   createReadStream,
   createWriteStream,
   existsSync, PathLike,
-  ReadStream,
-  WriteStream
+  ReadStream
 } from "fs";
 import { readFile, writeFile } from "fs/promises";
 import JSZip from "jszip";
@@ -51,21 +50,6 @@ export function getReadStream(
   if (gunzip === true) stream = stream.pipe(createGunzip());
   if (encoding) stream.setEncoding(encoding);
   return stream;
-}
-
-/**
- * Handy method to create a write stream to save data with gzip support.
- *
- * @param fileName
- * @param gzip
- * @returns
- */
-export function getWriteStream(
-  target: string | WriteStream,
-  gzip?: boolean
-): WriteStream {
-  let ws = target instanceof WriteStream ? target : createWriteStream(target);
-  return (gzip === true) ? createGzip().pipe(ws) : ws;
 }
 
 /**
@@ -124,9 +108,9 @@ export async function download(url: string, target: string, gzip?: boolean) {
     .then(
       (body) =>
         new Promise((resolve, reject) => {
-          const ws = getWriteStream(target, gzip);
-          body
-            .pipe(ws)
+          const start = gzip ? body.pipe(createGzip()) : body;
+          start
+            .pipe(createWriteStream(target))
             .on("close", resolve)
             .on("error", reject);
         })

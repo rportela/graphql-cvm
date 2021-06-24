@@ -1,88 +1,32 @@
-import { FundoCompletoRepoLocal } from "../repo/FundoCompletoRepoLocal";
-import { FundoDiarioRepoLocal } from "../repo/FundoDiarioRepoLocal";
+import { FundoDiarioCsvBuilder } from "../builders/FundoDiarioCsvBuilder";
+import { CkanSyncService, EntityConsumer, EntityProducer, EntityTransformer } from "../services/CkanSyncService";
 import { FundoDiario } from "../types/FundoDiario";
-import { fileNameFromUrl } from "../utils/Parsers";
+import { CsvVisitor, forEachCsvRow, readJsonFile, writeJsonFile } from "../utils/Files";
 
-/**
- * Create a syncrhonization object to get all fundo diarios grouped by cnpj.
- * @param repo
- * @param fileName
- * @returns
- */
-async function createSyncObject(
-  repo: FundoDiarioRepoLocal,
-  fileName: string
-): Promise<Record<number, FundoDiario[]>> {
-  const diarios: Record<number, FundoDiario[]> = {};
-  await repo.forEachFundoDiarioInFile(fileName, (fd) => {
-    let fdarray = diarios[fd.cnpj];
-    if (!fdarray) {
-      fdarray = [];
-      diarios[fd.cnpj] = fdarray;
-    }
-    fdarray.push(fd);
+const fundoDiarioProducer: EntityProducer<FundoDiario> = async (fileName: string, gzip: boolean, consumer: EntityConsumer<FundoDiario>) => {
+  const builder = new FundoDiarioCsvBuilder();
+  const csvConsumer: CsvVisitor = (row: string[], _lineNumber: number, headers: string[]): boolean => {
+    const entity = builder.build(row, headers);
+    consumer(entity);
     return true;
-  });
-  return diarios;
-}
-
-/**
- * Updates a single fund with new available fundo diario data.
- * @param repo
- * @param cnpj
- * @param diarios
- */
-async function updateFundoCompleto(
-  repo: FundoCompletoRepoLocal,
-  cnpj: number,
-  diarios: FundoDiario[]
-) {
-  const fundo = await repo.load(cnpj);
-  for (const diario of diarios) {
-    const index = fundo.diario.findIndex(
-      (d) => d.competencia === diario.competencia
-    );
-    if (index >= 0) fundo.diario[index] = diario;
-    else fundo.diario.push(diario);
   }
-  await repo.save(fundo);
+  await forEachCsvRow(fileName, ";", csvConsumer, true, gzip, "latin1");
 }
 
-/**
- * Updates the fundo completo local repository with the synced object.
- *
- * @param repo
- * @param syncObject
- */
-async function executeSyncObject(syncObject: Record<number, FundoDiario[]>) {
-  const repoCompleto = new FundoCompletoRepoLocal();
-  const cnpjs = Object.keys(syncObject);
-  for (const cnpj of cnpjs)
-    await updateFundoCompleto(repoCompleto, Number(cnpj), syncObject[cnpj]);
+const fundoDiarioTransformer: EntityTransformer<FundoDiario> = async (service: CkanSyncService<FundoDiario>, key: string, entities: FundoDiario[]) => {
+  const locaFile = service.getLocalEntityFile(key);
+  let entity = await readJsonFile<FundoDiario[]>(locaFile, true);
+  if (entity) {
+    for (const entry of entities) {
+      const i = entity.findIndex(e => e.competencia === entry.competencia);
+      if (i >= 0) entity[i] = entry;
+      else entity.push(entry);
+    }
+  } else entity = entities;
+  await writeJsonFile(entities, locaFile, true);
 }
 
-export default async function syncFundoDiario() {
-  const start_time = new Date();
-  const repo = new FundoDiarioRepoLocal();
-  console.log("Updating local entities", new Date());
 
-  for (const res of await repo.syncronize()) {
-    const file_time = new Date();
-    const file = fileNameFromUrl(res.url);
-    console.log(file, "...", file_time);
-    const syncObject = await createSyncObject(repo, file);
-    await executeSyncObject(syncObject);
-    console.log(
-      "completed",
-      file,
-      ". Took:",
-      (new Date().getTime() - file_time.getTime()) / 1000.0,
-      "segs."
-    );
-  }
-  console.log(
-    "... complete fundo diario. Took: ",
-    (new Date().getTime() - start_time.getTime()) / 1000.0,
-    "segs."
-  );
-}
+const SyncFundoDiario = new CkanSyncService("cvm", "http://dados.cvm.gov.br", "fi-doc-inf_diario", "CSV", true, "cnpj", fundoDiarioProducer, fundoDiarioTransformer);
+
+export default SyncFundoDiario;
